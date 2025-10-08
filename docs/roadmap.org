@@ -1,0 +1,182 @@
+* High Frequency Trading (HFT) developer roadmap
+
+** Big picture (what HFT engineers actually do)
+
+- Build ultra-low-latency systems that ingest market data, make decisions, and
+  send orders in microseconds or less.
+- Work across hardware, OS, network, and application layers to remove variance
+  and predictably reduce latency.
+- Design, test and backtest strategies (market making, stat arb,
+  liquidity-taking, cross-exchange arbitrage), while enforcing risk controls.
+- Constant profiling, instrumentation, and incremental optimization.
+
+** Core skill areas (short list)
+
+1. *Advanced C++ (modern + low-level)*
+   - C++17/20 idioms; move semantics, constexpr, templates, type traits.
+   - Concurrency: atomics, memory_order, lock-free programming, ABA problem,
+     wait-free basics.
+   - Low-level: ABI, calling conventions, object layout, data-oriented design,
+     cache friendliness, branch prediction.
+
+2. *Operating Systems & Linux internals*
+   - Kernel scheduling, interrupt handling, hugepages, NUMA, CPU affinity, IRQ
+     pinning.
+   - Tools: perf, ftrace, eBPF, /proc, sysctl, numa* tools.
+
+3. *Networking & protocol engineering*
+   - TCP/UDP fundamentals, kernel bypass (DPDK), RDMA basics, zero-copy, kernel
+     vs user-space networking.
+   - Market protocols: FIX (order entry), binary market data feeds
+     (exchange-specific: e.g. ITCH/OUCH style). (Learn to parse binary protocols
+     and handle sequence numbers, heartbeats, gaps).
+
+4. *Hardware & infra*
+   - NIC tuning, timestamping, PTP (Precision Time Protocol), FPGA basics (if
+     you aim very low-latency).
+   - Co-location, fiber, microsecond-level topology considerations.
+
+5. *Algorithms, statistics & finance*
+   - Market microstructure, order book dynamics, latencies effects, slippage.
+   - Probability/statistics for signal detection, basic time-series concepts,
+     estimation and hypothesis testing.
+
+6. *System design & reliability*
+   - Deterministic behavior, replayable simulations, risk controls,
+     monitoring/alerting, testing under high load.
+
+7. *Practical tooling*
+   - Profilers: perf, VTune; debugging: gdb; packet capture: tcpdump/wireshark;
+     tracing: lttng/eBPF/bpftrace.
+   - Data handling: fast parsers, binary I/O, compression, memory pools, custom
+     allocators.
+
+8. *Research / strategy development*
+   - Using Python/R for research, pandas, Jupyter for analysis, but production
+     strategies are often C++.
+
+** Time-phased roadmap (practical milestones)
+
+Assume you’re working on this full-time or intensively as side-projects. Adjust
+times if part-time.
+
+*** Month 0–3 — Foundation & quick wins
+- Deep dive modern C++ concurrency (atomics, fences) and lock-free patterns.
+- Learn Linux performance basics: CPU affinity, hugepages, swapping, sysctl
+  knobs.
+- Project 1: *Simple market data handler*
+   - Write a UDP listener that parses a small mock binary feed; measure
+     end-to-end parse latency.
+- Tools to learn: perf, tcpdump, gdb, valgrind (memcheck).
+
+*** Month 3–6 — Networking & OS internals
+- Study and experiment with NIC tuning, interrupt coalescing, RSS, and CPU
+  isolation.
+- Implement thread pinning, affinity, and NUMA-aware memory allocation in your
+  project.
+- Project 2: *Order entry + basic matching engine*
+  - Build a small in-memory matching engine (limit/IOC) and an order entry
+    client using a simple binary protocol. Add benchmarking harness.
+- Learn about kernel bypass (research DPDK basics; you can prototype without it
+  first).
+
+*** Month 6–12 — Latency engineering & protocols
+- Learn FIX and an exchange’s binary market data protocol (implement parser &
+  handler).
+- Focus on lock-free queues, ring buffers (LMAX Disruptor-inspired), batching,
+  and memory pools.
+- Project 3: *Market data replay & strategy simulator*
+  - Ingest historical tick data, replay it deterministically through your
+    matching engine, implement a simple market-making strategy, measure PnL and
+    latency.
+- Start using hardware timestamping & PTP if you have access.
+
+*** 12–24 months — Production-grade & hardware
+- Profile and iterate: reduce tail latency, reduce jitter, instrument with eBPF.
+- Learn RDMA/FPGA basics if targeting sub-microsecond latency roles.
+- Contribute to or build a low-latency exchange gateway (with risk controls).
+- Begin interviewing/applying; prepare portfolio showing measurable benchmarks.
+
+
+
+** Concrete projects that prove competence (ranked)
+
+1. Market data feed handler with deterministic parsing, gap handling, sequence
+   recovery, unit tests.
+2. Minimal matching engine capable of replaying L1/L2 events and matching
+   orders; deterministic and fast.
+3. Microbenchmark suite — measure network receive → decode → decision →
+   transmit; reduce to minimal median/tail latency.
+4. Latency-optimized order gateway supporting FIX + binary orderflow and proper
+   risk checks.
+5. Backtester/replayer that can replay millions of messages per hour, allow
+   parameter sweeps and slippage modeling.
+
+** Low-level techniques to master (practical checklist)
+- Data-oriented design: separate hot/cold data, structure-of-arrays vs
+  array-of-structures.
+- Prefetching, cacheline alignment, false sharing avoidance.
+- Use of std::atomic with explicit memory_order, lock-free queues.
+- Avoid dynamic allocation in hot paths (object pools, stack allocation).
+- Minimize syscalls in hot path; use batching.
+- Replace system threads/locks with busy-wait loops only where justified;
+  measure CPU cost vs latency gain.
+- Compiler toolchain: LTO, profile-guided optimization (PGO), link-time flags,
+  and assembly inspection.
+- Tail-latency control: measure p95/p99/p999, not just average.
+
+** Tools & libraries to learn quickly
+- perf, VTune, gprof (less useful), numactl, hwloc
+- tcpdump, wireshark, tcpreplay
+- DPDK (conceptually), libpcap, SO_TIMESTAMPING, ptp4l
+- eBPF / bpftrace / tracepoints
+- Google Benchmark / folly’s benchmarking utilities
+- Logging: structured, non-blocking
+- Unit test frameworks: Catch2/GoogleTest
+- CI that runs performance/regression tests (nightly replay)
+
+** Math / strategy learning (practical)
+- Understand order book dynamics and queue priority.
+- Learn basic statistical signal detection (z-scores, t-tests), slippage
+  modeling, and transaction-cost analysis.
+- Learn how to avoid overfitting: cross-validation on time-series
+  (walk-forward), realistic simulation of latency and market impact.
+
+
+** Safety, ethics & legal
+- HFT can have regulatory and ethical considerations (market manipulation,
+  spoofing, etc.). Learn exchange rules, market abuse laws in your
+  jurisdictions, and implement rigorous risk controls.
+
+
+** Daily / weekly practice plan (example)
+- 3× week: 1–2 hours reading/learning (protocols, Linux internals)
+- 2× week: 3–4 hours coding (projects above)
+- 1× week: profiling session + document improvements
+- Weekly: short write-up of experiments and latency numbers
+
+** Interview / portfolio tips
+- Show reproducible benchmarks: commit the code and a script that runs a
+  standard replay and produces p50/p99 results.
+- Demonstrate ability to reason about tail latency and show before/after
+  profiling.
+- Include a “design doc” for one of your projects: architecture, failure modes,
+  latency targets, monitoring.
+- Expect questions on atomics, memory ordering, lock-free structures, and
+  designing for determinism.
+
+** Learning resources (concise list)
+- Books: High-Frequency Trading (Aldridge) for market microstructure; Systems
+  Performance (Brendan Gregg) for OS profiling; any modern C++ concurrency book.
+- Papers/blogs: look up posts on LMAX Disruptor and latency optimization
+  (practical, evergreen content).
+- Practice datasets: historical tick data (for replay), exchange simulator logs
+  (if available).
+
+** Quick starter checklist (do these first 2 weeks)
+1. Implement a small UDP-based mock market feed and parser in C++.
+2. Add measurement: timestamp at receive, after parse, after decision, and after
+   send — record latencies.
+3. Profile hot path with perf and remove one source of allocation or lock.
+4. Write a short readme summarizing p50/p99 before/after (this becomes your
+   first portfolio item).
