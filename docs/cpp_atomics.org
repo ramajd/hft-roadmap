@@ -1,0 +1,78 @@
+* Atomics (C++)
+
+** What Are Atomics?
+
+Atomics are variables that can be safely accessed and modified by *multiple
+threads simultaneously, without using mutexes*.
+
+They are part of the ~<atomic>~ header, introduced in *C++11*.
+
+An *atomic operation* is one that happens “all at once” — no other thread can
+observe it in an intermediate state.
+
+
+** Why Use Atomics?
+
+When multiple threads share data, you normally need synchronization (like a
+mutex) to prevent race conditions.
+
+Atomics provide low-level, lock-free synchronization, which can improve
+performance for simple shared variables.
+
+
+** Operations on Atomics
+
+1. Store and Load
+   #+BEGIN_SRC cpp
+     std::atomic<int> value = 0;
+
+     value.store(10);
+     int x = value.load();
+   #+END_SRC
+
+2. Exchange
+   #+BEGIN_SRC cpp
+     int old_value = value.exchange(12);
+   #+END_SRC
+
+3. Compare and Swap
+   #+BEGIN_SRC cpp
+     int expected = 11;
+     int desired = 12;
+
+     if (value.compare_exchange_strong(expected, desired)) {
+       std::cout << "Updated successfully!\n";
+     } else {
+       std::cout << "Update failed. current: " << value.load() << "\n";
+     }
+   #+END_SRC
+
+
+** Basic Example
+
+#+BEGIN_SRC cpp
+  #include <iostream>
+  #include <atomic>
+  #include <thread>
+
+  std::atomic<int> counter = 0;
+
+  void increment() {
+    for (int i = 0; i < 1000; ++i) {
+      counter++;
+    }
+  }
+
+  int main() {
+    std::thread t1(increment);
+    std::thread t2(increment);
+
+    t1.join();
+    t2.join();
+
+    std::cout << "Final counter: " << counter << "\n";
+    return 0;
+  }
+#+END_SRC
+
+[[https://godbolt.org/z/esG7fo7Ws][run]]

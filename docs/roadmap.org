@@ -22,7 +22,7 @@
 2. *Operating Systems & Linux internals*
    - Kernel scheduling, interrupt handling, hugepages, NUMA, CPU affinity, IRQ
      pinning.
-   - Tools: perf, ftrace, eBPF, /proc, sysctl, numa* tools.
+   - Tools: ~perf~, ~ftrace~, eBPF, ~/proc~, sysctl, numa* tools.
 
 3. *Networking & protocol engineering*
    - TCP/UDP fundamentals, kernel bypass (DPDK), RDMA basics, zero-copy, kernel
@@ -34,6 +34,7 @@
 4. *Hardware & infra*
    - NIC tuning, timestamping, PTP (Precision Time Protocol), FPGA basics (if
      you aim very low-latency).
+
    - Co-location, fiber, microsecond-level topology considerations.
 
 5. *Algorithms, statistics & finance*
@@ -61,7 +62,7 @@ Assume you’re working on this full-time or intensively as side-projects. Adjus
 times if part-time.
 
 *** Month 0–3 — Foundation & quick wins
-- Deep dive modern C++ concurrency (atomics, fences) and lock-free patterns.
+- Deep dive modern C++ concurrency ([[cpp_atomics.org][atomics]], fences) and lock-free patterns.
 - Learn Linux performance basics: CPU affinity, hugepages, swapping, sysctl
   knobs.
 - Project 1: *Simple market data handler*
